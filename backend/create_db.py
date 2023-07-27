@@ -7,7 +7,7 @@ c = conn.cursor()
 #Criar tabelas
 
 c.execute('''
-CREATE TABLE Moto(
+CREATE TABLE IF NOT EXISTS Moto(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     NomeMoto TEXT NOT NULL,
     MarcaMoto TEXT NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE Moto(
 );
 ''')
 
-c.execute('''CREATE TABLE Comentario(
+c.execute('''CREATE TABLE IF NOT EXISTS Comentario(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     NomeUsuario TEXT NOT NULL,
     UsuarioId INTEGER NOT NULL,
@@ -37,10 +37,10 @@ c.execute('''CREATE TABLE Comentario(
     FOREIGN KEY(UsuarioId) REFERENCES Usuario(id)
 );''')
 
-c.execute('''CREATE TABLE Usuario(
+c.execute('''CREATE TABLE IF NOT EXISTS Usuario(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    NomeUsuario TEXT NOT NULL,
-    SenhaUsuario TEXT NOT NULL
+    Usuario TEXT NOT NULL UNIQUE,
+    Senha TEXT NOT NULL
 );
 ''')
 
