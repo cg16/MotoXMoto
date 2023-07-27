@@ -3,7 +3,7 @@ import sqlite3
 
 app = Flask(__name__)
 
-def fetch_bike_data(nome, marca, ano):
+def fetch_bike_data(nome):
     # Conecta ao banco de dados SQLite
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
@@ -15,9 +15,9 @@ def fetch_bike_data(nome, marca, ano):
            DescIndiceRoubosMoto, CodigoIndiceRoubosMoto, TanqueCombustivelLitros,
            ProcedenciaMoto, UrlImagem
     FROM Moto
-    WHERE NomeMoto = ? AND MarcaMoto = ? AND AnoMoto = ?
+    WHERE NomeMoto = ?
     """
-    cursor.execute(query, (nome, marca, ano))
+    cursor.execute(query, (nome))
     data = cursor.fetchall()
 
     # Fecha a conexão com o banco de dados
@@ -47,6 +47,35 @@ def fetch_bike_data(nome, marca, ano):
         bike_data.append(bike)
 
     return bike_data
+
+# Função para obter lista de todas as motos para o dropdown
+
+@app.route('/bike_list', methods=['GET'])
+def fetch_bike_list():
+    # Conecta ao banco de dados SQLite
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    # Executa a consulta para obter os dados com base nas entradas do usuário
+    query = """
+    SELECT NomeMoto
+    FROM Moto
+    """
+    cursor.execute(query)
+    data = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    # Formata os resultados da consulta em uma lista de dicionários
+    bike_list = []
+    for row in data:
+        bike = {
+            "NomeMoto": row[0]
+        }
+        bike_list.append(bike)
+
+    return bike_list
 
 def autenticar_usuario(usuario, senha):
     # Conecta ao banco de dados SQLite
@@ -124,6 +153,80 @@ def registro():
 
     # Retorna o resultado do registro em JSON
     return jsonify({"sucesso": sucesso})
+
+def inserir_comentario(nome_usuario, usuario_id, comentario, moto_id):
+    # Conecta ao banco de dados SQLite
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    try:
+        # Executa a consulta para inserir um novo comentário na tabela Comentarios
+        query = """
+        INSERT INTO Comentarios (NomeUsuario, UsuarioId, Comentario, MotoId)
+        VALUES (?, ?, ?, ?)
+        """
+        cursor.execute(query, (nome_usuario, usuario_id, comentario, moto_id))
+        conn.commit()
+        return True
+    except sqlite3.Error as e:
+        print(f"Erro ao inserir comentário: {e}")
+        return False
+    finally:
+        # Fecha a conexão com o banco de dados
+        cursor.close()
+        conn.close()
+
+def ler_comentarios_por_moto(moto_id):
+    # Conecta ao banco de dados SQLite
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    # Executa a consulta para obter os comentários relacionados à moto específica
+    query = """
+    SELECT NomeUsuario, Comentario FROM Comentarios WHERE MotoId = ?
+    """
+    cursor.execute(query, (moto_id,))
+    data = cursor.fetchall()
+
+    # Fecha a conexão com o banco de dados
+    cursor.close()
+    conn.close()
+
+    # Formata os resultados da consulta em uma lista de dicionários
+    comentarios = []
+    for row in data:
+        comentario = {
+            "NomeUsuario": row[0],
+            "Comentario": row[1],
+        }
+        comentarios.append(comentario)
+
+    return comentarios
+
+@app.route('/inserir_comentario', methods=['POST'])
+def inserir_comentario_route():
+    data = request.get_json()
+    nome_usuario = data.get('nome_usuario')
+    usuario_id = data.get('usuario_id')
+    comentario = data.get('comentario')
+    moto_id = data.get('moto_id')
+
+    # Insere o novo comentário na tabela Comentarios
+    sucesso = inserir_comentario(nome_usuario, usuario_id, comentario, moto_id)
+
+    # Retorna o resultado da inserção em JSON
+    return jsonify({"sucesso": sucesso})
+
+@app.route('/ler_comentarios_por_moto', methods=['POST'])
+def ler_comentarios_por_moto_route():
+    data = request.get_json()
+    moto_id = data.get('moto_id')
+
+    # Obtém os comentários relacionados à moto no banco de dados
+    comentarios = ler_comentarios_por_moto(moto_id)
+
+    # Retorna a resposta JSON com os comentários
+    return jsonify(comentarios)
 
 if __name__ == "__main__":
     app.run(debug=True)
