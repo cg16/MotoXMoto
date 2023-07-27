@@ -1,5 +1,7 @@
 from flask import Flask, request, jsonify
 import sqlite3
+import html # Para evitar injeção de código HTML
+
 
 app = Flask(__name__)
 
@@ -7,6 +9,8 @@ def fetch_bike_data(nome):
     # Conecta ao banco de dados SQLite
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
+
+    nome = html.escape(nome) # Evita injeção de código HTML
 
     # Executa a consulta para obter os dados com base nas entradas do usuário
     query = """
@@ -82,6 +86,9 @@ def autenticar_usuario(usuario, senha):
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
+    usuario = html.escape(usuario)
+    senha = html.escape(senha)
+
     # Executa a consulta para verificar se o usuário existe e a senha corresponde
     query = """
     SELECT id FROM Usuario WHERE Usuario = ? AND Senha = ?
@@ -99,6 +106,9 @@ def cadastrar_usuario(usuario, senha):
     # Conecta ao banco de dados SQLite
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
+
+    usuario = html.escape(usuario)
+    senha = html.escape(senha)
 
     try:
         # Executa a consulta para inserir o novo registro de usuário
@@ -120,12 +130,13 @@ def cadastrar_usuario(usuario, senha):
 def comparar_motos():
     # Obtém a entrada do usuário a partir do payload JSON enviado pelo frontend
     data = request.get_json()
-    nome_moto = data.get('NomeMoto')
-    marca_moto = data.get('MarcaMoto')
-    ano_moto = data.get('AnoMoto')
+
+    nome_moto = html.escape(data.get('NomeMoto'))
+    # marca_moto = data.get('MarcaMoto')
+    # ano_moto = data.get('AnoMoto') #celsinho pediu pra tirar
 
     # Obtém os dados das motos no banco de dados
-    motos = fetch_bike_data(nome_moto, marca_moto, ano_moto)
+    motos = fetch_bike_data(nome_moto)
 
     # Retorna a resposta JSON com os dados das motos
     return jsonify(motos)
@@ -133,8 +144,8 @@ def comparar_motos():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    usuario = data.get('usuario')
-    senha = data.get('senha')
+    usuario = html.escape(data.get('usuario'))
+    senha = html.escape(data.get('senha'))
 
     # Autentica o usuário
     autenticado = autenticar_usuario(usuario, senha)
@@ -145,8 +156,8 @@ def login():
 @app.route('/registro', methods=['POST'])
 def registro():
     data = request.get_json()
-    usuario = data.get('usuario')
-    senha = data.get('senha')
+    usuario = html.escape(data.get('usuario'))
+    senha = html.escape(data.get('senha'))
 
     # Registra o novo usuário
     sucesso = cadastrar_usuario(usuario, senha)
@@ -158,6 +169,9 @@ def inserir_comentario(nome_usuario, usuario_id, comentario, moto_id):
     # Conecta ao banco de dados SQLite
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
+
+    nome_usuario = html.escape(nome_usuario)
+    comentario = html.escape(comentario)
 
     try:
         # Executa a consulta para inserir um novo comentário na tabela Comentarios
@@ -220,7 +234,7 @@ def inserir_comentario_route():
 @app.route('/ler_comentarios_por_moto', methods=['POST'])
 def ler_comentarios_por_moto_route():
     data = request.get_json()
-    moto_id = data.get('moto_id')
+    moto_id = int(data.get('moto_id'))
 
     # Obtém os comentários relacionados à moto no banco de dados
     comentarios = ler_comentarios_por_moto(moto_id)
