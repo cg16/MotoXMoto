@@ -1,5 +1,11 @@
+import './Footer.css'
+
 export default function Footer() {
     return (
-        <h1>BBBB</h1>
+        <div className='footer'>
+            <p>
+                Lorem Ipsum
+            </p>
+        </div>
     );
   }

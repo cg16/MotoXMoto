@@ -1,0 +1,11 @@
+.header{ 
+    background-color: purple;
+    color: white;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+    
