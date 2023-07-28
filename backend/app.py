@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import sqlite3
 import html # Para evitar injeção de código HTML
+import bcrypt
 
 
 app = Flask(__name__)
@@ -21,7 +22,7 @@ def fetch_bike_data(nome):
     FROM Moto
     WHERE NomeMoto = ?
     """
-    cursor.execute(query, (nome))
+    cursor.execute(query, (nome,))
     data = cursor.fetchall()
 
     # Fecha a conexão com o banco de dados
@@ -91,16 +92,21 @@ def autenticar_usuario(usuario, senha):
 
     # Executa a consulta para verificar se o usuário existe e a senha corresponde
     query = """
-    SELECT id FROM Usuario WHERE Usuario = ? AND Senha = ?
+    SELECT id, Senha FROM Usuario WHERE Usuario = ?
     """
-    cursor.execute(query, (usuario, senha))
-    user_id = cursor.fetchone()
+    cursor.execute(query, (usuario,))
+    user_data = cursor.fetchone()
+
+    # Se o usuário for encontrado e a senha corresponder, retorna o user_id
+    if user_data and bcrypt.checkpw(senha.encode('utf-8'), user_data[1]):
+        user_id = user_data[0]
+        return user_id
 
     # Fecha a conexão com o banco de dados
     cursor.close()
     conn.close()
 
-    return user_id is not None
+    return None
 
 def cadastrar_usuario(usuario, senha):
     # Conecta ao banco de dados SQLite
@@ -110,12 +116,15 @@ def cadastrar_usuario(usuario, senha):
     usuario = html.escape(usuario)
     senha = html.escape(senha)
 
+    hashed_password = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt())
+
+
     try:
         # Executa a consulta para inserir o novo registro de usuário
         query = """
         INSERT INTO Usuario (Usuario, Senha) VALUES (?, ?)
         """
-        cursor.execute(query, (usuario, senha))
+        cursor.execute(query, (usuario, hashed_password))
         conn.commit()
         return True
     except sqlite3.IntegrityError:
