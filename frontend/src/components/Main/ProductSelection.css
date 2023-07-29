@@ -2,7 +2,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 100%;
   }
   
   .rectangle {
@@ -12,9 +12,32 @@
     gap: 50px;
     align-items: center;
     width: 800px;
+    margin-top: 50px;
+    margin-bottom: 50px;
     height: 400px;
     border: 2px solid #000;
     border-radius: 8px;
+  }
+
+  .rectangle_result{
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    
+    padding: 50px 0 ;
+    width: 800px;
+    height: 600px;
+    border: 2px solid #000;
+    border-radius: 8px;
+
+  }
+
+  .rectangle_result img  {
+    width: 300px;
+    height: 200px;
+
   }
   
   .buttons {

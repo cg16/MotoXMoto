@@ -1,10 +1,13 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS, cross_origin
 import sqlite3
 import html # Para evitar injeção de código HTML
 import bcrypt
 
 
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 def fetch_bike_data(nome):
     # Conecta ao banco de dados SQLite
@@ -56,6 +59,7 @@ def fetch_bike_data(nome):
 # Função para obter lista de todas as motos para o dropdown
 
 @app.route('/bike_list', methods=['GET'])
+
 def fetch_bike_list():
     # Conecta ao banco de dados SQLite
     conn = sqlite3.connect('database.db')
@@ -63,9 +67,10 @@ def fetch_bike_list():
 
     # Executa a consulta para obter os dados com base nas entradas do usuário
     query = """
-    SELECT NomeMoto
+    SELECT *
     FROM Moto
     """
+    
     cursor.execute(query)
     data = cursor.fetchall()
 
@@ -76,7 +81,22 @@ def fetch_bike_list():
     bike_list = []
     for row in data:
         bike = {
-            "NomeMoto": row[0]
+            "IdMoto": row[0],
+            "NomeMoto": row[1], 
+            "MarcaMoto":row[2], 
+            "CilindradaMoto":row[3], 
+            "AnoMoto":row[4], 
+            "TabelaFipe":row[5], 
+            "ConsumoMotoCidade":row[6],
+            "ConsumoMotoEstrada":row[7],
+             "TempoZeroCemMoto":row[8], 
+             "VelocidadeMaximaMoto":row[9], 
+             "MediaSeguroMoto":row[10],
+             "DescIndiceRoubosMoto":row[11], 
+             "CodigoIndiceRoubosMoto":row[12],
+             "TanqueCombustivelLitros":row[13],
+             "ProcedenciaMoto":row[14], 
+             "UrlImagem":row[15]
         }
         bike_list.append(bike)
 
